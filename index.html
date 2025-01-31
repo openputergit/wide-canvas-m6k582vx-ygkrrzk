@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Raman AI - Your STEM Learning Companion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .neumorphic {
+            background: #e0e5ec;
+            box-shadow: 9px 9px 16px rgb(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.5);
+        }
+        .neumorphic-inset {
+            background: #e0e5ec;
+            box-shadow: inset 9px 9px 16px rgb(163,177,198,0.6), inset -9px -9px 16px rgba(255,255,255, 0.5);
+        }
+        body {
+            background: #e0e5ec;
+            font-family: 'Poppins', sans-serif;
+        }
+        .chat-container {
+            height: calc(100vh - 300px);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Login Section -->
+        <div id="loginSection" class="neumorphic rounded-2xl p-8 max-w-md mx-auto mb-8">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Welcome to Tutor Raman AI</h2>
+            <input type="email" id="email" placeholder="Email" class="w-full mb-4 p-3 rounded-xl neumorphic-inset">
+            <input type="password" id="password" placeholder="Password" class="w-full mb-4 p-3 rounded-xl neumorphic-inset">
+            <button onclick="toggleAuth()" class="w-full neumorphic rounded-xl p-3 font-semibold text-gray-700 hover:opacity-90">Login</button>
+            <p class="text-center mt-4 text-gray-600">Don't have an account? <a href="#" onclick="toggleAuthMode()" class="text-blue-600">Sign up</a></p>
+        </div>
+
+        <!-- Main Chat Interface -->
+        <div id="chatSection" class="hidden">
+            <div class="neumorphic rounded-2xl p-6 mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h1 class="text-2xl font-bold text-gray-700">Tutor Raman AI</h1>
+                    <button onclick="logout()" class="neumorphic px-4 py-2 rounded-xl text-gray-700">Logout</button>
+                </div>
+                <div class="chat-container neumorphic-inset rounded-xl p-4 mb-4 overflow-y-auto">
+                    <div id="chatMessages" class="space-y-4"></div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="userInput" placeholder="Ask any STEM question..." class="flex-1 p-3 rounded-xl neumorphic-inset">
+                    <button onclick="sendMessage()" class="neumorphic p-3 rounded-xl">
+                        <i class="bi bi-send text-gray-700"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Saved Queries Section -->
+            <div class="neumorphic rounded-2xl p-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Saved Queries</h2>
+                <div id="savedQueries" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isLogin = true;
+        let currentUser = null;
+        let savedQueries = {};
+
+        function toggleAuthMode() {
+            isLogin = !isLogin;
+            const title = document.querySelector('#loginSection h2');
+            const button = document.querySelector('#loginSection button');
+            const toggleText = document.querySelector('#loginSection p');
+            
+            title.textContent = isLogin ? 'Welcome to Tutor Raman AI' : 'Create Account';
+            button.textContent = isLogin ? 'Login' : 'Sign Up';
+            toggleText.innerHTML = isLogin ? 
+                'Don\'t have an account? <a href="#" onclick="toggleAuthMode()" class="text-blue-600">Sign up</a>' :
+                'Already have an account? <a href="#" onclick="toggleAuthMode()" class="text-blue-600">Login</a>';
+        }
+
+        function toggleAuth() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            currentUser = email;
+            savedQueries[email] = savedQueries[email] || [];
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('chatSection').classList.remove('hidden');
+            loadSavedQueries();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('chatSection').classList.add('hidden');
+            document.getElementById('chatMessages').innerHTML = '';
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            addMessage('user', message);
+            saveQuery(message);
+            generateResponse(message);
+            input.value = '';
+        }
+
+        function addMessage(sender, content) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${sender === 'user' ? 'ml-auto' : 'mr-auto'} max-w-[80%] p-3 rounded-xl ${sender === 'user' ? 'neumorphic' : 'neumorphic-inset'}`;
+            messageDiv.textContent = content;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function generateResponse(question) {
+            // Simulated AI response - In production, this would call an actual AI API
+            const responses = {
+                physics: "According to physics principles, ",
+                math: "The mathematical solution would be ",
+                chemistry: "In chemistry, this phenomenon is explained by ",
+                engineering: "From an engineering perspective, "
+            };
+
+            const subject = Object.keys(responses)[Math.floor(Math.random() * Object.keys(responses).length)];
+            setTimeout(() => {
+                addMessage('ai', responses[subject] + "this is a detailed explanation of " + question);
+            }, 1000);
+        }
+
+        function saveQuery(query) {
+            if (currentUser) {
+                savedQueries[currentUser].push(query);
+                loadSavedQueries();
+            }
+        }
+
+        function loadSavedQueries() {
+            const queriesDiv = document.getElementById('savedQueries');
+            queriesDiv.innerHTML = '';
+            
+            if (currentUser && savedQueries[currentUser]) {
+                savedQueries[currentUser].forEach(query => {
+                    const queryDiv = document.createElement('div');
+                    queryDiv.className = 'neumorphic p-3 rounded-xl text-gray-700 text-sm';
+                    queryDiv.textContent = query;
+                    queriesDiv.appendChild(queryDiv);
+                });
+            }
+        }
+
+        // Handle Enter key in input
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
